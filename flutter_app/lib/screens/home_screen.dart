@@ -14,7 +14,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _ipController = TextEditingController();
-  final TextEditingController _portController = TextEditingController(text: '8765');
+  final TextEditingController _portController =
+      TextEditingController(text: '8765');
   bool _autoConnectAttempted = false;
 
   @override
@@ -35,19 +36,19 @@ class _HomeScreenState extends State<HomeScreen> {
   // 前回の接続を確認
   Future<void> _checkPreviousConnection() async {
     if (_autoConnectAttempted) return;
-    
+
     _autoConnectAttempted = true;
     final wsService = Provider.of<WebSocketService>(context, listen: false);
-    
+
     if (wsService.status == ConnectionStatus.disconnected) {
       final connected = await wsService.tryReconnectLast();
       if (connected) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('前回の接続を復元しました')),
         );
-        
+
         // 接続に成功したら、リモート制御画面へ
-        if (mounted) {
+        if (mounted && wsService.connectedDevice != null) {
           _navigateToRemoteControl(wsService.connectedDevice!);
         }
       }
@@ -56,7 +57,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // デバイススキャンを開始
   void _startScan() {
-    final discoveryService = Provider.of<DeviceDiscoveryService>(context, listen: false);
+    final discoveryService =
+        Provider.of<DeviceDiscoveryService>(context, listen: false);
     discoveryService.startScan();
   }
 
@@ -68,7 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
       );
       return;
     }
-    
+
     int port;
     try {
       port = int.parse(_portController.text);
@@ -78,10 +80,11 @@ class _HomeScreenState extends State<HomeScreen> {
       );
       return;
     }
-    
-    final discoveryService = Provider.of<DeviceDiscoveryService>(context, listen: false);
+
+    final discoveryService =
+        Provider.of<DeviceDiscoveryService>(context, listen: false);
     discoveryService.addManualDevice(_ipController.text, port);
-    
+
     // 入力フィールドをクリア
     _ipController.clear();
     _portController.text = '8765';
@@ -90,17 +93,17 @@ class _HomeScreenState extends State<HomeScreen> {
   // デバイスへの接続
   Future<void> _connectToDevice(PCDevice device) async {
     final wsService = Provider.of<WebSocketService>(context, listen: false);
-    
+
     // 接続中であれば切断
     if (wsService.isConnected) {
       wsService.disconnect();
     }
-    
+
     final host = device.host ?? device.ip;
     final port = device.port ?? 8765;
-    
+
     final connected = await wsService.connect(host, port);
-    
+
     if (connected) {
       if (mounted) {
         // 接続成功
@@ -129,7 +132,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final discoveryService = Provider.of<DeviceDiscoveryService>(context);
     final wsService = Provider.of<WebSocketService>(context);
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('PC Remote Control'),
@@ -167,7 +170,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
-          
+
           // 手動接続入力フォーム
           Padding(
             padding: const EdgeInsets.all(16),
@@ -206,7 +209,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-          
+
           // スキャン中の表示
           if (discoveryService.isScanning)
             const Padding(
@@ -221,7 +224,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-            
+
           // エラーメッセージ
           if (discoveryService.error.isNotEmpty)
             Padding(
@@ -231,7 +234,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 style: const TextStyle(color: Colors.red),
               ),
             ),
-            
+
           // 検出されたデバイスのリスト
           Expanded(
             child: discoveryService.discoveredDevices.isEmpty
@@ -250,7 +253,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           style: const TextStyle(fontSize: 24),
                         ),
                         title: Text(device.displayName),
-                        subtitle: Text('${device.connectionString} - ${device.resolution}'),
+                        subtitle: Text(
+                            '${device.connectionString} - ${device.resolution}'),
                         trailing: ElevatedButton(
                           onPressed: () => _connectToDevice(device),
                           child: const Text('接続'),

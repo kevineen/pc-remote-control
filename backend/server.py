@@ -42,7 +42,7 @@ def get_pc_info():
     }
 
 # WebSocketハンドラ
-async def websocket_handler(websocket, path):
+async def websocket_handler(websocket):
     """クライアントからのWebSocket接続を処理する"""
     client_address = websocket.remote_address
     logger.info(f"新しいクライアント接続: {client_address}")
